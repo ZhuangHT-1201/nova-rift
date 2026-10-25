@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07141a">
+  <meta name="color-scheme" content="dark">
+  <meta name="application-name" content="Nova Rift">
+  <meta name="description" content="Nova Rift - 在浏览器中直接游玩的 5V5 英雄竞技场。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Nova Rift · 5V5 Arena">
+  <meta property="og:description" content="无需安装，即刻进入原生 Canvas 绘制的星海竞技场。">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Nova Rift · 5V5 Arena</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='16' y='16' width='32' height='32' rx='3' transform='rotate(45 32 32)' fill='%2308171b' stroke='%23d8b66a'/%3E%3Cpath d='M32 19l4 9 9 4-9 4-4 9-4-9-9-4 9-4z' fill='%23d8b66a'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="app">
+    <canvas id="gameCanvas" aria-label="Nova Rift 战场"></canvas>
+    <div class="world-vignette" aria-hidden="true"></div>
+    <div id="damageFlash" aria-hidden="true"></div>
+
+    <section id="mainMenu" class="screen menu-screen is-active" aria-label="游戏大厅">
+      <div class="menu-ambient ambient-one"></div>
+      <div class="menu-ambient ambient-two"></div>
+      <header class="menu-nav">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true"><span></span></div>
+          <div>
+            <p class="eyebrow">ASTRAL 5V5</p>
+            <p class="brand-name">NOVA RIFT</p>
+          </div>
+        </div>
+        <div class="nav-tabs" aria-label="大厅导航">
+          <span class="nav-tab is-current">英雄</span>
+          <span class="nav-tab">对战</span>
+          <span class="nav-tab">星图</span>
+          <span class="nav-tab">战令</span>
+        </div>
+        <div class="profile-chip">
+          <span class="profile-level">Lv. 28</span>
+          <span class="profile-avatar">曜</span>
+          <span class="profile-name">逐星旅人</span>
+        </div>
+      </header>
+
+      <div class="menu-content">
+        <section class="hero-copy">
+          <div class="season-label"><i></i><span>SEASON 01 · 星火降临</span></div>
+          <p id="heroRole" class="hero-role">刺客 · 突进</p>
+          <h1 id="heroName">玄霜</h1>
+          <p id="heroTitle" class="hero-title">「影刃」</p>
+          <p id="heroTagline" class="hero-tagline">刃光掠过之处，胜负早已写定。</p>
+          <div class="hero-meta">
+            <div class="meta-item">
+              <span class="meta-label">伤害</span>
+              <div class="meta-bar"><i id="statDamage" style="width:86%"></i></div>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">生存</span>
+              <div class="meta-bar"><i id="statSurvival" style="width:48%"></i></div>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">难度</span>
+              <div class="meta-bar"><i id="statDifficulty" style="width:72%"></i></div>
+            </div>
+          </div>
+          <div class="mode-switch" role="group" aria-label="对局难度">
+            <button type="button" class="mode-option" data-difficulty="normal">
+              <span>标准</span><small>初次征战</small>
+            </button>
+            <button type="button" class="mode-option is-selected" data-difficulty="hard">
+              <span>星耀</span><small>更强的对手</small>
+            </button>
+          </div>
+          <div class="menu-actions">
+            <button type="button" id="startBtn" class="primary-action">
+              <span class="action-text">开始对局</span>
+              <span class="action-note">5V5 匹配</span>
+            </button>
+            <button type="button" id="guideBtn" class="secondary-action">战术手册</button>
+          </div>
+        </section>
+
+        <section class="hero-stage" aria-label="当前英雄展示">
+          <div class="stage-halo halo-a" aria-hidden="true"></div>
+          <div class="stage-halo halo-b" aria-hidden="true"></div>
+          <div id="heroSigil" class="hero-sigil" aria-hidden="true">刃</div>
+          <canvas id="heroCanvas" width="720" height="760" aria-label="英雄剪影"></canvas>
+          <div class="stage-caption">
+            <span class="caption-line"></span>
+            <span id="stageCaption">宿命，由我执笔</span>
+            <span class="caption-line"></span>
+          </div>
+        </section>
+
+        <aside class="roster-panel">
+          <div class="roster-heading">
+            <span>英雄选择</span>
+            <span id="rosterCount">01 / 05</span>
+          </div>
+          <div id="heroRoster" class="hero-roster" role="listbox" aria-label="选择英雄"></div>
+          <div id="abilityPreview" class="ability-preview" aria-label="英雄技能"></div>
+          <div class="lane-planner">
+            <div class="lane-planner-heading">
+              <span>分路设置</span>
+              <small id="roleHint">中央战场 · 快速支援</small>
+            </div>
+            <div id="roleOptions" class="role-options" role="radiogroup" aria-label="选择分路位置"></div>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="menu-footer">
+        <div class="queue-status">
+          <span class="pulse-dot"></span>
+          <span>峡谷信号稳定</span>
+          <span class="queue-divider"></span>
+          <span>经典 5V5 · 三路兵线</span>
+        </div>
+        <div class="menu-shortcuts">
+          <span><kbd>QWER</kbd> 释放技能</span>
+          <span><kbd>右键</kbd> 移动</span>
+          <span><kbd>Y</kbd> 商店</span>
+          <span><kbd>B</kbd> 回城</span>
+        </div>
+      </footer>
+    </section>
+
+    <section id="matchIntro" class="match-intro" aria-live="polite" hidden>
+      <div class="intro-grain" aria-hidden="true"></div>
+      <canvas id="introHeroCanvas" class="intro-hero-art" width="720" height="760" aria-hidden="true"></canvas>
+      <div class="intro-topline"><span>NOVA RIFT</span><i></i><span>CLASSIC 5V5</span></div>
+      <div class="intro-teams">
+        <div class="intro-team intro-blue">
+          <span class="intro-team-name">星穹</span>
+          <div id="introBlue" class="intro-lineup"></div>
+        </div>
+        <div class="intro-versus">
+          <span>VS</span>
+          <small>星火降临</small>
+        </div>
+        <div class="intro-team intro-red">
+          <div id="introRed" class="intro-lineup"></div>
+          <span class="intro-team-name">赤曜</span>
+        </div>
+      </div>
+      <div class="intro-hero">
+        <span id="introHeroSigil">刃</span>
+        <p><small>本局出战</small><strong id="introHeroName">玄霜</strong></p>
+        <em id="introHeroRole">刺客 · 突进</em>
+      </div>
+    </section>
+
+    <section id="gameHud" class="game-hud" aria-label="对局界面" hidden>
+      <header class="battle-topbar">
+        <div class="team-score blue-score">
+          <div class="team-name"><span class="team-dot"></span>星穹</div>
+          <strong id="blueKills">0</strong>
+        </div>
+        <div class="match-clock-wrap">
+          <span class="match-mode">经典 5V5</span>
+          <strong id="matchClock">00:00</strong>
+          <span id="objectiveHint" class="objective-hint">兵线将在 5 秒后出发</span>
+        </div>
+        <div class="team-score red-score">
+          <strong id="redKills">0</strong>
+          <div class="team-name">赤曜<span class="team-dot"></span></div>
+        </div>
+      </header>
+
+      <div class="top-tools">
+        <button type="button" id="shopBtn" class="icon-button shop-icon" aria-label="打开商店" title="打开商店 · Y">
+          <span>商</span><small>Y</small>
+        </button>
+        <button type="button" id="muteBtn" class="icon-button" aria-label="切换声音" title="切换声音">
+          <span id="soundIcon">♪</span>
+        </button>
+        <button type="button" id="pauseBtn" class="icon-button" aria-label="暂停游戏" title="暂停游戏">Ⅱ</button>
+      </div>
+
+      <div id="blueSquad" class="squad-strip blue-squad" aria-label="星穹阵容"></div>
+      <div id="redSquad" class="squad-strip red-squad" aria-label="赤曜阵容"></div>
+
+      <div id="targetPanel" class="target-panel" hidden>
+        <div class="target-crest" id="targetCrest">敌</div>
+        <div class="target-info">
+          <div class="target-heading"><span>当前目标</span><strong id="targetName">敌方英雄</strong></div>
+          <div class="target-health"><i id="targetHealth"></i><span id="targetHealthText"></span></div>
+        </div>
+      </div>
+
+      <div id="bossHud" class="boss-hud" hidden>
+        <span id="bossHudName">星渊主宰</span>
+        <div class="boss-track"><i id="bossHudBar"></i></div>
+      </div>
+
+      <aside class="player-status">
+        <div class="hero-badge">
+          <span id="hudHeroSigil" class="badge-glyph">刃</span>
+          <span id="hudLevel" class="level-chip">1</span>
+        </div>
+        <div class="status-bars">
+          <div class="status-line">
+            <span class="hud-name-group"><span id="hudHeroName">玄霜</span><em id="hudRole" class="role-chip">中路</em></span>
+            <small id="hudKda">0 / 0 / 0</small>
+            <small id="hudGold">490 G</small>
+          </div>
+          <div class="bar health-bar"><i id="hpBar"></i><span id="hpText">920 / 920</span></div>
+          <div class="bar mana-bar"><i id="manaBar"></i></div>
+          <div class="bar xp-bar"><i id="xpBar"></i></div>
+        </div>
+      </aside>
+
+      <aside class="minimap-shell">
+        <div class="minimap-top"><span>群星峡谷</span><span id="minimapTimer">00:00</span></div>
+        <canvas id="minimap" width="448" height="448" aria-label="战场小地图"></canvas>
+        <div class="minimap-legend">
+          <span><i class="legend-dot ally"></i>我方</span>
+          <span><i class="legend-dot enemy"></i>敌方</span>
+          <span><i class="legend-ring"></i>视野</span>
+        </div>
+      </aside>
+
+      <div id="killFeed" class="kill-feed" aria-live="polite"></div>
+      <div id="announcement" class="announcement" aria-live="polite" hidden>
+        <span id="announcementKicker">峡谷事件</span>
+        <strong id="announcementText"></strong>
+      </div>
+      <div id="comboCallout" class="combo-callout" aria-live="polite" hidden></div>
+
+      <aside class="objective-panel">
+        <div class="objective-heading">
+          <span class="objective-icon">✦</span>
+          <div><strong>星渊主宰</strong><small>中立 · 河道</small></div>
+        </div>
+        <div id="objectiveStatus" class="objective-status">02:00 后降临</div>
+      </aside>
+
+      <section class="ability-dock" aria-label="技能栏">
+        <div class="resource-row">
+          <span id="statHint">点击敌人发起攻击 · 右键移动</span>
+          <span id="comboStatus">连击 0</span>
+        </div>
+        <div class="ability-bar">
+          <button type="button" class="ability-button passive" data-skill="P" aria-label="英雄被动">
+            <span class="ability-icon">◇</span><span class="keycap">P</span><span class="ability-name">锋芒</span>
+          </button>
+          <button type="button" class="ability-button" data-skill="Q" aria-label="一技能">
+            <span class="ability-icon" id="skillIconQ">刃</span><span class="keycap">Q</span><span class="ability-name" id="skillNameQ">逐影</span><span class="cooldown" id="cdQ"></span>
+          </button>
+          <button type="button" class="ability-button" data-skill="W" aria-label="二技能">
+            <span class="ability-icon" id="skillIconW">斩</span><span class="keycap">W</span><span class="ability-name" id="skillNameW">裂空</span><span class="cooldown" id="cdW"></span>
+          </button>
+          <button type="button" class="ability-button" data-skill="E" aria-label="三技能">
+            <span class="ability-icon" id="skillIconE">隐</span><span class="keycap">E</span><span class="ability-name" id="skillNameE">无迹</span><span class="cooldown" id="cdE"></span>
+          </button>
+          <button type="button" class="ability-button ultimate" data-skill="R" aria-label="终极技能">
+            <span class="ability-icon" id="skillIconR">终</span><span class="keycap">R</span><span class="ability-name" id="skillNameR">瞬狱</span><span class="cooldown" id="cdR"></span>
+          </button>
+        </div>
+      </section>
+
+      <div class="battle-actions">
+        <button type="button" id="attackBtn" class="round-action attack" aria-label="攻击">⚔</button>
+        <button type="button" id="recallBtn" class="round-action recall" aria-label="回城">⌂</button>
+      </div>
+
+      <button type="button" id="itemBar" class="item-bar" aria-label="装备栏，按 Y 打开商店"></button>
+
+      <div id="recallIndicator" class="recall-indicator" hidden>
+        <span>正在返回星穹圣坛</span>
+        <div class="recall-progress"><i id="recallProgress"></i></div>
+      </div>
+
+      <div id="deathOverlay" class="death-overlay" hidden>
+        <span>你已倒下</span>
+        <strong id="respawnTimer">8</strong>
+        <small>星穹之力正在重聚</small>
+      </div>
+
+      <div class="touch-stick" id="touchStick" aria-hidden="true">
+        <span class="stick-ring"></span><span id="stickKnob" class="stick-knob"></span>
+      </div>
+    </section>
+
+    <div id="shopModal" class="modal-layer shop-layer" hidden>
+      <section class="glass-modal shop-modal" role="dialog" aria-modal="true" aria-labelledby="shopTitle">
+        <header class="modal-header shop-header">
+          <div>
+            <p class="eyebrow">STARFORGE ARMORY</p>
+            <h2 id="shopTitle">星铸商店</h2>
+          </div>
+          <div class="shop-wallet">
+            <span>可用金币</span>
+            <strong id="shopGold">490</strong>
+          </div>
+          <button type="button" class="modal-close" data-close="shopModal">×</button>
+        </header>
+        <div class="shop-tabs" role="tablist" aria-label="装备分类">
+          <button type="button" class="shop-tab is-active" data-shop-category="attack">攻击</button>
+          <button type="button" class="shop-tab" data-shop-category="magic">法术</button>
+          <button type="button" class="shop-tab" data-shop-category="defense">防御</button>
+          <button type="button" class="shop-tab" data-shop-category="move">移动</button>
+        </div>
+        <div class="shop-body">
+          <div id="shopItems" class="shop-items"></div>
+          <aside class="shop-loadout">
+            <div class="shop-section-title"><span>当前装备</span><small>最多 6 件</small></div>
+            <div id="shopSlots" class="shop-slots"></div>
+            <div class="shop-section-title"><span>装备属性</span></div>
+            <div id="shopStats" class="shop-stats"></div>
+            <p class="shop-note">对局中可随时购买，装备属性立即生效。</p>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+    <div id="scoreboard" class="modal-layer" hidden>
+      <section class="glass-modal scoreboard-modal" aria-label="英雄战绩">
+        <header class="modal-header">
+          <div><p class="eyebrow">BATTLE RECORD</p><h2>战局一览</h2></div>
+          <button type="button" class="modal-close" data-close="scoreboard">×</button>
+        </header>
+        <div id="scoreboardTeams" class="scoreboard-teams"></div>
+      </section>
+    </div>
+
+    <div id="guideModal" class="modal-layer" hidden>
+      <section class="glass-modal guide-modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <header class="modal-header">
+          <div><p class="eyebrow">FIELD MANUAL</p><h2 id="guideTitle">战术手册</h2></div>
+          <button type="button" class="modal-close" data-close="guideModal">×</button>
+        </header>
+        <div class="guide-grid">
+          <article><span class="guide-index">01</span><h3>掌控路线</h3><p>右键移动，左键锁定敌人。跟随兵线推进，避免孤身闯入防御塔射程。</p></article>
+          <article><span class="guide-index">02</span><h3>连招取胜</h3><p>Q / W / E 朝指针方向施放，R 为终极技能。优先净化兵线，再围攻英雄。</p></article>
+          <article><span class="guide-index">03</span><h3>争夺资源</h3><p>星渊主宰会在 2 分钟降临。击败它的队伍将获得全队攻击强化。</p></article>
+          <article><span class="guide-index">04</span><h3>分路与装备</h3><p>开局前选择对抗路、打野、中路、发育路或辅助。按 Y 打开商店，用金币购买装备强化属性。</p></article>
+        </div>
+        <div class="guide-controls">
+          <span><kbd>方向键</kbd> 移动</span><span><kbd>右键</kbd> 寻路</span><span><kbd>Q W E R</kbd> 技能</span><span><kbd>Y</kbd> 商店</span><span><kbd>B</kbd> 回城</span><span><kbd>Tab</kbd> 战绩</span><span><kbd>Esc</kbd> 暂停</span>
+        </div>
+      </section>
+    </div>
+
+    <div id="pauseModal" class="modal-layer" hidden>
+      <section class="glass-modal pause-modal" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+        <p class="eyebrow">TACTICAL HOLD</p>
+        <h2 id="pauseTitle">战局暂停</h2>
+        <p>群星峡谷的时间暂时静止了。</p>
+        <div class="pause-actions">
+          <button type="button" id="resumeBtn" class="primary-action compact">继续对局</button>
+          <button type="button" id="quitBtn" class="secondary-action compact">退出战场</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="resultModal" class="modal-layer result-layer" hidden>
+      <section class="glass-modal result-modal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+        <p id="resultKicker" class="eyebrow">BATTLE COMPLETE</p>
+        <h2 id="resultTitle">胜利</h2>
+        <p id="resultSubtitle">星穹的旗帜猎猎作响。</p>
+        <div class="result-stats">
+          <div><span>对局时长</span><strong id="resultDuration">00:00</strong></div>
+          <div><span>击败 / 阵亡</span><strong id="resultKda">0 / 0</strong></div>
+          <div><span>输出占比</span><strong id="resultDamage">0%</strong></div>
+        </div>
+        <button type="button" id="playAgainBtn" class="primary-action compact">再战一局</button>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>

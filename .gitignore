@@ -1,0 +1,12 @@
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+*.log
+.DS_Store
+Thumbs.db
+
+# Local captures and legacy design iterations.
+/.artifacts/
+/*.png
+/previews/

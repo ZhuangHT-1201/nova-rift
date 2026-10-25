@@ -1,0 +1,19 @@
+{
+  "name": "nova-rift",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Nova Rift - a zero-build 5v5 MOBA arena built with Canvas and vanilla JavaScript.",
+  "author": "ZhuangHT-1201",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/serve.mjs",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}
