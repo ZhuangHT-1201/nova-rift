@@ -3,6 +3,7 @@
   "version": "1.1.0",
   "private": true,
   "description": "Nova Rift - a zero-build 5v5 MOBA arena built with Canvas and vanilla JavaScript.",
+  "license": "MIT",
   "author": "ZhuangHT-1201",
   "scripts": {
     "start": "node scripts/serve.mjs",

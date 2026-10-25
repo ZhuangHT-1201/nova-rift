@@ -134,3 +134,11 @@ Generated test assets are written under `test-results/` and are excluded from ve
 ## Browser support
 
 Nova Rift targets current versions of Chrome, Edge, Firefox, and Safari. Touch controls and pointer input require a modern browser; Web Audio remains optional if the browser blocks autoplay.
+
+## Contributing
+
+Issues and pull requests are welcome. Run `npm ci` and `npm test` before opening a pull request, and keep the project free of runtime dependencies whenever the platform APIs are sufficient. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+
+## License
+
+Nova Rift is open-source software available under the [MIT License](LICENSE).
