@@ -45,11 +45,15 @@ test("Nova Rift launches, progresses, and responds to combat input", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
-test("all hero cards can start a match", async ({ page }) => {
+test("all hero cards can start a match", async ({ page }, testInfo) => {
   await page.goto("/");
   for (const hero of ["星岚", "赤璃", "苍岳", "灵歌"]) {
     await page.locator(`[data-hero="${["archer", "mage", "guardian", "support"][["星岚", "赤璃", "苍岳", "灵歌"].indexOf(hero)]}"]`).click();
     await expect(page.locator("#heroName")).toHaveText(hero);
+  }
+  if (process.env.CAPTURE_SCREENSHOTS === "1") {
+    await page.waitForTimeout(650);
+    await capture(page, testInfo, "hero-select");
   }
   await page.getByRole("button", { name: "开始对局" }).click();
   await expect(page.locator("#hudHeroName")).toHaveText("灵歌");
@@ -67,8 +71,11 @@ test("boss rewards and core victory resolve correctly", async ({ page }) => {
   await expect
     .poll(() => page.evaluate(() => window.__ARENA_DEBUG__.game?.buff.blue > window.__ARENA_DEBUG__.game?.time))
     .toBe(true);
-  await page.evaluate(() => window.__ARENA_DEBUG__.defeatNexus("red"));
-  await expect(page.locator("#resultModal")).toBeVisible({ timeout: 5000 });
+  await page.evaluate(() => {
+    window.__ARENA_DEBUG__.defeatNexus("red");
+    window.__ARENA_DEBUG__.advance(2);
+  });
+  await expect(page.locator("#resultModal")).toBeVisible({ timeout: 3000 });
   await expect(page.locator("#resultTitle")).toHaveText("胜利");
 });
 

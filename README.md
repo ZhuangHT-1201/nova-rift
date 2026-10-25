@@ -20,6 +20,41 @@ Nova Rift（星渊裂隙）是一款无需安装、无需后端的 5v5 英雄竞
 - Procedural Web Audio effects with an in-game mute control.
 - No runtime dependencies, build step, framework, or backend.
 
+## Screenshots
+
+### Choose your champion
+
+<p align="center">
+  <img src="docs/screenshots/hero-select.webp" width="100%" alt="Nova Rift hero selection with Lingge, support champion">
+</p>
+
+Five heroes share one roster but differ in stats, passives, skill patterns, and preferred lanes.
+
+### Enter the rift
+
+<p align="center">
+  <img src="docs/screenshots/intro.webp" width="100%" alt="Nova Rift 5v5 team lineup before the match">
+</p>
+
+Each match opens with both five-player lineups, player role, and lane assignment.
+
+### Fight across three lanes
+
+<p align="center">
+  <img src="docs/screenshots/gameplay.webp" width="49%" alt="Nova Rift combat and minimap HUD">
+  <img src="docs/screenshots/battle.webp" width="49%" alt="Nova Rift river bridge battle in progress">
+</p>
+
+Minions, jungle camps, towers, river objectives, and both AI teams progress continuously during a match.
+
+### Build power during the match
+
+<p align="center">
+  <img src="docs/screenshots/shop.webp" width="100%" alt="Nova Rift Starforge Armory equipment shop">
+</p>
+
+Purchases update hero stats immediately, while the six-slot loadout makes each build easy to read at a glance.
+
 ## Run locally
 
 Node.js 20 or newer is recommended.
